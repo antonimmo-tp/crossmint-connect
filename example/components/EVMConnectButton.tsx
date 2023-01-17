@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { BlockchainTypes, CrossmintEVMWalletAdapter } from "@crossmint/connect";
+import * as ethers from "ethers";
 
 export default function EVMConnectButton() {
     const [address, setAddress] = useState<string | undefined>(undefined);
@@ -8,7 +9,7 @@ export default function EVMConnectButton() {
     async function connectToCrossmint() {
         // Initialize the Crossmint embed.
         const _crossmintEmbed = new CrossmintEVMWalletAdapter({
-            apiKey: "<YOUR_API_KEY>",
+            apiKey: "sk_live.yKC2hgNw.ujKvGNQGHc47tOVf0i1Yey3WACTZ9f5i",
             chain: BlockchainTypes.ETHEREUM, // BlockchainTypes.ETHEREUM || BlockchainTypes.POLYGON. For solana use BlockchainTypes.SOLANA
         });
 
@@ -17,7 +18,27 @@ export default function EVMConnectButton() {
 
         // If the user successfully connects to Crossmint, the address will be returned.
         if (address) {
+            console.log("EVM Address",address);
             setAddress(address);
+
+            const msg = "Hello World 2.0";
+            console.log("Requiring user to sign a test message:", msg);
+
+            const signature = await _crossmintEmbed.signMessage(msg);
+            console.log("Signature", signature);
+
+            const hash = ethers.utils.hashMessage(msg);
+            //let pubKey = ethers.utils.recoverPublicKey(ethers.utils.arrayify(ethers.utils.hashMessage(ethers.utils.arrayify(hash))), signature);
+            //let recoveredAddress = ethers.utils.computeAddress(pubKey)
+            const recoveredAddress = ethers.utils.recoverAddress(hash, signature);
+            console.log("Address from signature", recoveredAddress);
+            console.log("Address match?", recoveredAddress === address);
+
+            // Not necessary
+            //_crossmintEmbed.disconnect();
+            //console.log("Wallet disconnected");
+        } else{
+            console.log("Connection failed");
         }
     }
 
